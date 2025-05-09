@@ -1,65 +1,141 @@
+
 package a6.calculator.controller;
 
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.Stack;
-
-import a6.calculator.R;
-
 import a6.calculator.MainActivity;
-import a6.calculator.model.StackCalculator;
+import a6.calculator.R;
+import a6.calculator.model.*;
 
-public class Controller {
-    MainActivity mainActivity;
-    StackCalculator calculator;
+public class Controller{
+    enum DisplayState { INPUT, STACK, ERROR }
+
+    private final MainActivity mainActivity;
+    private final StackCalculator calc;
     private TextView displayText;
     private TextView stackText;
-    public Controller(MainActivity mainActivity, StackCalculator calculator) {
+    private DisplayState displayState = DisplayState.INPUT;
+    private StringBuilder inputBuffer = new StringBuilder("0");
+
+    public Controller(MainActivity mainActivity, StackCalculator calc) {
         this.mainActivity = mainActivity;
-        this.calculator = calculator;
+        this.calc = calc;
     }
-    public void initButtons(){
+
+    public void initButtons() {
         displayText = mainActivity.findViewById(R.id.display);
         stackText = mainActivity.findViewById(R.id.stack);
 
-        Button addButton = mainActivity.findViewById(R.id.add);
-        addButton.setOnClickListener(v -> {
-            stackText.setText("Stack size: " + calculator.size());
-            displayText.setText("Add clicked");
+        updateDisplay();
+
+        int[] digitIds = {
+            R.id.zero, R.id.one, R.id.two, R.id.three, R.id.four,
+            R.id.five, R.id.six, R.id.seven, R.id.eight, R.id.nine
+        };
+
+        for (int i = 0; i < digitIds.length; i++) {
+            int digit = i;
+            Button btn = mainActivity.findViewById(digitIds[i]);
+            btn.setOnClickListener(v -> onDigitPressed(digit));
+        }
+
+        mainActivity.findViewById(R.id.plusminus).setOnClickListener(v -> onSignToggle());
+        mainActivity.findViewById(R.id.enter).setOnClickListener(v -> onEnterPressed());
+        mainActivity.findViewById(R.id.clear).setOnClickListener(v -> {
+            calc.clear();
+            inputBuffer = new StringBuilder("0");
+            displayState = DisplayState.INPUT;
+            updateDisplay();
         });
-        Button subButton = mainActivity.findViewById(R.id.sub);
-        subButton.setOnClickListener(v -> {
-            stackText.setText("Stack size: " + calculator.size());
-            displayText.setText("Sub clicked");
-        });
-        Button mulButton = mainActivity.findViewById(R.id.mul);
-        mulButton.setOnClickListener(v -> {
-            stackText.setText("Stack size: " + calculator.size());
-            displayText.setText("Mul clicked");
-        });
-        Button divButton = mainActivity.findViewById(R.id.div);
-        divButton.setOnClickListener(v -> {
-            stackText.setText("Stack size: " + calculator.size());
-            displayText.setText("Div clicked");
-        });
-        Button clrButton = mainActivity.findViewById(R.id.clear);
-        clrButton.setOnClickListener(v -> {
-            stackText.setText("Stack size: " + calculator.size());
-            displayText.setText("Clear stack");
-        });
-        Button oneButton = mainActivity.findViewById(R.id.one);
-        Button twoButton = mainActivity.findViewById(R.id.two);
-        Button threeButton = mainActivity.findViewById(R.id.three);
-        Button fourButton = mainActivity.findViewById(R.id.four);
-        Button fiveButton = mainActivity.findViewById(R.id.five);
-        Button sixButton = mainActivity.findViewById(R.id.six);
-        Button sevenButton = mainActivity.findViewById(R.id.seven);
-        Button eightButton = mainActivity.findViewById(R.id.eight);
-        Button nineButton = mainActivity.findViewById(R.id.nine);
-        Button signButton = mainActivity.findViewById(R.id.plusminus);
-        Button zeroButton = mainActivity.findViewById(R.id.zero);
-        Button enterButton = mainActivity.findViewById(R.id.enter);
+
+        mainActivity.findViewById(R.id.add).setOnClickListener(v -> performOperation(new Addition(calc)));
+        mainActivity.findViewById(R.id.sub).setOnClickListener(v -> performOperation(new Subtraction(calc)));
+        mainActivity.findViewById(R.id.mul).setOnClickListener(v -> performOperation(new Multiplication(calc)));
+        mainActivity.findViewById(R.id.div).setOnClickListener(v -> performOperation(new Division(calc)));
+    }
+
+    private void onDigitPressed(int digit) {
+        if (displayState != DisplayState.INPUT) {
+            inputBuffer = new StringBuilder("0");
+            displayState = DisplayState.INPUT;
+        }
+        if (inputBuffer.toString().equals("0")) {
+            inputBuffer = new StringBuilder(String.valueOf(digit));
+        } else {
+            inputBuffer.append(digit);
+        }
+        updateDisplay();
+    }
+
+    private void onSignToggle() {
+        if (displayState != DisplayState.INPUT) {
+            inputBuffer = new StringBuilder("-0");
+            displayState = DisplayState.INPUT;
+        } else {
+            if (inputBuffer.charAt(0) == '-') {
+                inputBuffer.deleteCharAt(0);
+            } else {
+                inputBuffer.insert(0, '-');
+            }
+        }
+        updateDisplay();
+    }
+
+    private void onEnterPressed() {
+        if (displayState == DisplayState.ERROR) return;
+
+        try {
+            int value = Integer.parseInt(inputBuffer.toString());
+            calc.push(value);
+            displayState = DisplayState.STACK;
+            updateDisplay();
+        } catch (NumberFormatException e) {
+            displayText.setText("Overflow");
+            displayState = DisplayState.ERROR;
+        }
+    }
+    private void performOperation(Operation op) {
+        if (displayState == DisplayState.INPUT) {
+            try {
+                int value = Integer.parseInt(inputBuffer.toString());
+                calc.push(value);
+            } catch (NumberFormatException e) {
+                displayText.setText("Overflow");
+                displayState = DisplayState.ERROR;
+                return;
+            }
+        }
+
+        try {
+            op.apply();
+            displayState = DisplayState.STACK;
+            updateDisplay();
+        } catch (NotEnoughArgumentsException e) {
+            displayText.setText("Not enough args");
+            displayState = DisplayState.ERROR;
+        } catch (DivisionByZeroException e) {
+            displayText.setText("Division by 0");
+            displayState = DisplayState.ERROR;
+        } catch (OverflowException e) {
+            displayText.setText("Overflow");
+            displayState = DisplayState.ERROR;
+        }
+    }
+
+    private void updateDisplay() {
+        if (displayState == DisplayState.INPUT) {
+            displayText.setText(inputBuffer.toString() + "_");
+        } else if (!calc.isEmpty()) {
+            displayText.setText(String.valueOf(calc.peek()));
+        } else {
+            displayText.setText("0");
+        }
+
+        StringBuilder stackBuilder = new StringBuilder();
+        for (int i = calc.size() - 1; i >= 0; i--) {
+            stackBuilder.append(calc.get(i)).append(" ");
+        }
+        stackText.setText(stackBuilder.toString().trim());
     }
 }

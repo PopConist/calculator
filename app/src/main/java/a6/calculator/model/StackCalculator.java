@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.EmptyStackException;
 import java.lang.Math;
 
-public class StackCalculator extends LinkedList<Integer> {
+public class StackCalculator extends LinkedList<Integer>{
 
     public void add() throws NotEnoughArgumentsException, OverflowException {
         if (size() < 2) {
