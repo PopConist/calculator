@@ -9,25 +9,22 @@ import a6.calculator.R;
 import a6.calculator.model.*;
 
 public class Controller{
-    enum DisplayState { INPUT, STACK, ERROR }
-
     private final MainActivity mainActivity;
     private final StackCalculator calc;
+    private final a6.calculator.view.calcView calcView;
     private TextView displayText;
     private TextView stackText;
-    private DisplayState displayState = DisplayState.INPUT;
-    private StringBuilder inputBuffer = new StringBuilder("0");
+    public DisplayState displayState = DisplayState.INPUT;
 
-    public Controller(MainActivity mainActivity, StackCalculator calc) {
+    public Controller(MainActivity mainActivity, StackCalculator calc, a6.calculator.view.calcView calcView) {
         this.mainActivity = mainActivity;
         this.calc = calc;
+        this.calcView = calcView;
     }
 
     public void initButtons() {
-        displayText = mainActivity.findViewById(R.id.display);
-        stackText = mainActivity.findViewById(R.id.stack);
 
-        updateDisplay();
+        a6.calculator.view.calcView.updateDisplay(displayState);
 
         int[] digitIds = {
             R.id.zero, R.id.one, R.id.two, R.id.three, R.id.four,
@@ -44,9 +41,9 @@ public class Controller{
         mainActivity.findViewById(R.id.enter).setOnClickListener(v -> onEnterPressed());
         mainActivity.findViewById(R.id.clear).setOnClickListener(v -> {
             calc.clear();
-            inputBuffer = new StringBuilder("0");
+            calcView.inputBuffer = new StringBuilder("0");
             displayState = DisplayState.INPUT;
-            updateDisplay();
+            a6.calculator.view.calcView.updateDisplay(displayState);
         });
 
         mainActivity.findViewById(R.id.add).setOnClickListener(v -> performOperation(new Addition(calc)));
@@ -57,39 +54,39 @@ public class Controller{
 
     private void onDigitPressed(int digit) {
         if (displayState != DisplayState.INPUT) {
-            inputBuffer = new StringBuilder("0");
+            calcView.inputBuffer = new StringBuilder("0");
             displayState = DisplayState.INPUT;
         }
-        if (inputBuffer.toString().equals("0")) {
-            inputBuffer = new StringBuilder(String.valueOf(digit));
+        if (calcView.inputBuffer.toString().equals("0")) {
+            calcView.inputBuffer = new StringBuilder(String.valueOf(digit));
         } else {
-            inputBuffer.append(digit);
+            calcView.inputBuffer.append(digit);
         }
-        updateDisplay();
+        calcView.updateDisplay(displayState);
     }
 
     private void onSignToggle() {
         if (displayState != DisplayState.INPUT) {
-            inputBuffer = new StringBuilder("-0");
+            calcView.inputBuffer = new StringBuilder("-0");
             displayState = DisplayState.INPUT;
         } else {
-            if (inputBuffer.charAt(0) == '-') {
-                inputBuffer.deleteCharAt(0);
+            if (calcView.inputBuffer.charAt(0) == '-') {
+                calcView.inputBuffer.deleteCharAt(0);
             } else {
-                inputBuffer.insert(0, '-');
+                calcView.inputBuffer.insert(0, '-');
             }
         }
-        updateDisplay();
+        calcView.updateDisplay(displayState);
     }
 
     private void onEnterPressed() {
         if (displayState == DisplayState.ERROR) return;
 
         try {
-            int value = Integer.parseInt(inputBuffer.toString());
+            int value = Integer.parseInt(a6.calculator.view.calcView.inputBuffer.toString());
             calc.push(value);
             displayState = DisplayState.STACK;
-            updateDisplay();
+            a6.calculator.view.calcView.updateDisplay(displayState);
         } catch (NumberFormatException e) {
             displayText.setText("Overflow");
             displayState = DisplayState.ERROR;
@@ -98,7 +95,7 @@ public class Controller{
     private void performOperation(Operation op) {
         if (displayState == DisplayState.INPUT) {
             try {
-                int value = Integer.parseInt(inputBuffer.toString());
+                int value = Integer.parseInt(a6.calculator.view.calcView.inputBuffer.toString());
                 calc.push(value);
             } catch (NumberFormatException e) {
                 displayText.setText("Overflow");
@@ -110,7 +107,7 @@ public class Controller{
         try {
             op.apply();
             displayState = DisplayState.STACK;
-            updateDisplay();
+            a6.calculator.view.calcView.updateDisplay(displayState);
         } catch (NotEnoughArgumentsException e) {
             displayText.setText("Not enough args");
             displayState = DisplayState.ERROR;
@@ -121,21 +118,5 @@ public class Controller{
             displayText.setText("Overflow");
             displayState = DisplayState.ERROR;
         }
-    }
-
-    private void updateDisplay() {
-        if (displayState == DisplayState.INPUT) {
-            displayText.setText(inputBuffer.toString() + "_");
-        } else if (!calc.isEmpty()) {
-            displayText.setText(String.valueOf(calc.peek()));
-        } else {
-            displayText.setText("0");
-        }
-
-        StringBuilder stackBuilder = new StringBuilder();
-        for (int i = calc.size() - 1; i >= 0; i--) {
-            stackBuilder.append(calc.get(i)).append(" ");
-        }
-        stackText.setText(stackBuilder.toString().trim());
     }
 }

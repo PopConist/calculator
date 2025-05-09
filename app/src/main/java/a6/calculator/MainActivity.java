@@ -1,13 +1,12 @@
 package a6.calculator;
 
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import a6.calculator.controller.Controller;
 import a6.calculator.model.StackCalculator;
+import a6.calculator.view.calcView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,8 +16,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         StackCalculator calculator = new StackCalculator();
-        Controller controller = new Controller(this, calculator);
-
+        calcView calcView = new calcView(this, calculator);
+        Controller controller = new Controller(this, calculator, calcView);
         controller.initButtons();
     }
 }
