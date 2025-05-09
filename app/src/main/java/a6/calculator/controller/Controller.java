@@ -12,8 +12,6 @@ public class Controller{
     private final MainActivity mainActivity;
     private final StackCalculator calc;
     private final a6.calculator.view.calcView calcView;
-    private TextView displayText;
-    private TextView stackText;
     public DisplayState displayState = DisplayState.INPUT;
 
     public Controller(MainActivity mainActivity, StackCalculator calc, a6.calculator.view.calcView calcView) {
@@ -88,17 +86,17 @@ public class Controller{
             displayState = DisplayState.STACK;
             a6.calculator.view.calcView.updateDisplay(displayState);
         } catch (NumberFormatException e) {
-            displayText.setText("Overflow");
+            calcView.displayText.setText("Overflow");
             displayState = DisplayState.ERROR;
         }
     }
     private void performOperation(Operation op) {
         if (displayState == DisplayState.INPUT) {
             try {
-                int value = Integer.parseInt(a6.calculator.view.calcView.inputBuffer.toString());
+                int value = Integer.parseInt(calcView.inputBuffer.toString());
                 calc.push(value);
             } catch (NumberFormatException e) {
-                displayText.setText("Overflow");
+                calcView.displayText.setText("Overflow");
                 displayState = DisplayState.ERROR;
                 return;
             }
@@ -107,15 +105,15 @@ public class Controller{
         try {
             op.apply();
             displayState = DisplayState.STACK;
-            a6.calculator.view.calcView.updateDisplay(displayState);
+            calcView.updateDisplay(displayState);
         } catch (NotEnoughArgumentsException e) {
-            displayText.setText("Not enough args");
+            calcView.displayText.setText("Not enough args");
             displayState = DisplayState.ERROR;
         } catch (DivisionByZeroException e) {
-            displayText.setText("Division by 0");
+            calcView.displayText.setText("Division by 0");
             displayState = DisplayState.ERROR;
         } catch (OverflowException e) {
-            displayText.setText("Overflow");
+            calcView.displayText.setText("Overflow");
             displayState = DisplayState.ERROR;
         }
     }
