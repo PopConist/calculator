@@ -8,18 +8,31 @@ import a6.calculator.R;
 import a6.calculator.model.*;
 import a6.calculator.view.CalcView;
 
+/**
+ * Class that manages buttons and button listeners
+ */
 public class Controller{
     private final MainActivity mainActivity;
     private final StackCalculator calc;
     private final CalcView calcView;
     public DisplayState displayState = DisplayState.INPUT;
 
+    /**
+     * Constructor for Controller class. populates instances of the MainActivity,
+     * StackCalculator, and CalcView Classes.
+     * @param mainActivity
+     * @param calc
+     * @param calcView
+     */
     public Controller(MainActivity mainActivity, StackCalculator calc, CalcView calcView) {
         this.mainActivity = mainActivity;
         this.calc = calc;
         this.calcView = calcView;
     }
 
+    /**
+     * Method that initializes buttons and sets listeners for buttons.
+     */
     public void initButtons() {
 
         CalcView.updateDisplay(displayState);
@@ -50,6 +63,11 @@ public class Controller{
         mainActivity.findViewById(R.id.div).setOnClickListener(v -> performOperation(new Division(calc)));
     }
 
+    /**
+     * Method invoked by listeners of digit buttons, takes int parameter and updates
+     * views accordingly
+     * @param digit
+     */
     private void onDigitPressed(int digit) {
         if (displayState != DisplayState.INPUT) {
             calcView.inputBuffer = new StringBuilder("0");
@@ -63,6 +81,9 @@ public class Controller{
         calcView.updateDisplay(displayState);
     }
 
+    /**
+     * Method invoked by the sign button listener, updates views accordingly
+     */
     private void onSignToggle() {
         if (displayState != DisplayState.INPUT) {
             calcView.inputBuffer = new StringBuilder("-0");
@@ -77,6 +98,10 @@ public class Controller{
         calcView.updateDisplay(displayState);
     }
 
+    /**
+     * Method invoked by the enter button listener, updates views and stack
+     * accordingly
+     */
     private void onEnterPressed() {
         if (displayState == DisplayState.ERROR) return;
 
@@ -84,12 +109,19 @@ public class Controller{
             int value = Integer.parseInt(CalcView.inputBuffer.toString());
             calc.push(value);
             displayState = DisplayState.STACK;
-            CalcView.updateDisplay(displayState);
+            calcView.updateDisplay(displayState);
         } catch (NumberFormatException e) {
             calcView.displayText.setText("Overflow");
             displayState = DisplayState.ERROR;
         }
     }
+
+    /**
+     * Method invoked by operation button listeners, operation method passed
+     * through classes implementing the Operation interface. Updates the stack
+     * and views accordingly.
+     * @param op
+     */
     private void performOperation(Operation op) {
         if (displayState == DisplayState.INPUT) {
             try {

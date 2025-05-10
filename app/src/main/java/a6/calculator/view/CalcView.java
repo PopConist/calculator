@@ -7,13 +7,23 @@ import a6.calculator.R;
 import a6.calculator.controller.*;
 import a6.calculator.model.StackCalculator;
 
-
+/**
+ * Class that holds methods and variables related to the view
+ * of the calculator app
+ */
 public class CalcView {
     private MainActivity mainActivity;
     private static StackCalculator calc;
     public static TextView displayText;
     public static TextView stackText;
     public static StringBuilder inputBuffer = new StringBuilder("0");
+
+    /**
+     * Constructor for the CalcView class instantiates MainActivity and
+     * StackCalculator objects as well as the displayText and stackText TextViews.
+     * @param mainActivity
+     * @param calc
+     */
     public CalcView(MainActivity mainActivity, StackCalculator calc) {
         this.mainActivity = mainActivity;
         this.calc = calc;
@@ -21,6 +31,11 @@ public class CalcView {
         stackText = mainActivity.findViewById(R.id.stack);
     }
 
+    /**
+     * Method that updates the stack and display textViews,
+     * takes in a DisplayState enum.
+     * @param displayState
+     */
     public static void updateDisplay(DisplayState displayState) {
         if (displayState == DisplayState.INPUT) {
             displayText.setText(inputBuffer.toString() + "_");
