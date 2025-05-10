@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import a6.calculator.controller.Controller;
 import a6.calculator.model.StackCalculator;
-import a6.calculator.view.calcView;
+import a6.calculator.view.CalcView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         StackCalculator calculator = new StackCalculator();
-        calcView calcView = new calcView(this, calculator);
+        CalcView calcView = new CalcView(this, calculator);
         Controller controller = new Controller(this, calculator, calcView);
         controller.initButtons();
     }

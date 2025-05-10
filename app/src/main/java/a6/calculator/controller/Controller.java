@@ -2,19 +2,19 @@
 package a6.calculator.controller;
 
 import android.widget.Button;
-import android.widget.TextView;
 
 import a6.calculator.MainActivity;
 import a6.calculator.R;
 import a6.calculator.model.*;
+import a6.calculator.view.CalcView;
 
 public class Controller{
     private final MainActivity mainActivity;
     private final StackCalculator calc;
-    private final a6.calculator.view.calcView calcView;
+    private final CalcView calcView;
     public DisplayState displayState = DisplayState.INPUT;
 
-    public Controller(MainActivity mainActivity, StackCalculator calc, a6.calculator.view.calcView calcView) {
+    public Controller(MainActivity mainActivity, StackCalculator calc, CalcView calcView) {
         this.mainActivity = mainActivity;
         this.calc = calc;
         this.calcView = calcView;
@@ -22,7 +22,7 @@ public class Controller{
 
     public void initButtons() {
 
-        a6.calculator.view.calcView.updateDisplay(displayState);
+        CalcView.updateDisplay(displayState);
 
         int[] digitIds = {
             R.id.zero, R.id.one, R.id.two, R.id.three, R.id.four,
@@ -41,7 +41,7 @@ public class Controller{
             calc.clear();
             calcView.inputBuffer = new StringBuilder("0");
             displayState = DisplayState.INPUT;
-            a6.calculator.view.calcView.updateDisplay(displayState);
+            CalcView.updateDisplay(displayState);
         });
 
         mainActivity.findViewById(R.id.add).setOnClickListener(v -> performOperation(new Addition(calc)));
@@ -81,10 +81,10 @@ public class Controller{
         if (displayState == DisplayState.ERROR) return;
 
         try {
-            int value = Integer.parseInt(a6.calculator.view.calcView.inputBuffer.toString());
+            int value = Integer.parseInt(CalcView.inputBuffer.toString());
             calc.push(value);
             displayState = DisplayState.STACK;
-            a6.calculator.view.calcView.updateDisplay(displayState);
+            CalcView.updateDisplay(displayState);
         } catch (NumberFormatException e) {
             calcView.displayText.setText("Overflow");
             displayState = DisplayState.ERROR;

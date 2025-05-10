@@ -8,13 +8,13 @@ import a6.calculator.controller.*;
 import a6.calculator.model.StackCalculator;
 
 
-public class calcView {
+public class CalcView {
     private MainActivity mainActivity;
     private static StackCalculator calc;
     public static TextView displayText;
     public static TextView stackText;
     public static StringBuilder inputBuffer = new StringBuilder("0");
-    public calcView(MainActivity mainActivity, StackCalculator calc) {
+    public CalcView(MainActivity mainActivity, StackCalculator calc) {
         this.mainActivity = mainActivity;
         this.calc = calc;
         displayText = mainActivity.findViewById(R.id.display);
